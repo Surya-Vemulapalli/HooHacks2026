@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plant Health Monitor</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22V12"/>
+    <path d="M5 12C5 7 8 3 12 3s7 4 7 9"/>
+    <path d="M12 12C10 8 6 6 2 7"/>
+    <path d="M12 12c2-4 6-6 10-5"/>
+  </svg>
+  <div>
+    <h1>Plant Health Monitor</h1>
+    <span class="subtitle">Real-time sensor data · Powered by Gemini AI</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Controls -->
+  <div class="controls">
+    <label for="plant-select">Plant:</label>
+    <select id="plant-select"><option>Loading…</option></select>
+    <button id="refresh-btn">Refresh</button>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="label">Avg Temperature (24 h)</span>
+      <span class="value" id="stat-temp">—</span>
+      <span class="unit">°C</span>
+    </div>
+    <div class="stat-card">
+      <span class="label">Avg Light Level (24 h)</span>
+      <span class="value" id="stat-light">—</span>
+      <span class="unit">lux</span>
+    </div>
+    <div class="stat-card">
+      <span class="label">Avg Deformity Score (24 h)</span>
+      <span class="value" id="stat-def">—</span>
+      <span class="unit">0 – 1</span>
+    </div>
+    <div class="stat-card">
+      <span class="label">Readings (24 h)</span>
+      <span class="value" id="stat-count">—</span>
+      <span class="unit">samples</span>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Temperature over Time</h3>
+      <canvas id="temp-chart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Light Level over Time</h3>
+      <canvas id="light-chart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Deformity Score over Time</h3>
+      <canvas id="deformity-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Gemini AI Panel -->
+  <div class="gemini-panel">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 8v4l3 3"/>
+      </svg>
+      AI Plant Analysis
+      <span style="margin-left:auto">
+        <button class="analyze-btn" id="analyze-btn">Run AI Analysis</button>
+      </span>
+    </h2>
+    <div id="gemini-content">
+      <p class="placeholder">Click "Run AI Analysis" to get Gemini-powered recommendations for this plant.</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
