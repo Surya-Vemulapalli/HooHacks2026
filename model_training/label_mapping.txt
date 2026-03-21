@@ -1,0 +1,21 @@
+healthy:0
+black_rot:1
+early_blight:2
+target_spot:3
+late_blight:4
+tomato_mosaic_virus:5
+haunglongbing_(citrus_greening):6
+leaf_mold:7
+leaf_blight_(isariopsis_leaf_spot):8
+powdery_mildew:9
+cedar_apple_rust:10
+bacterial_spot:11
+common_rust_:12
+esca_(black_measles):13
+tomato_yellow_leaf_curl_virus:14
+apple_scab:15
+northern_leaf_blight:16
+spider_mites two-spotted_spider_mite:17
+septoria_leaf_spot:18
+cercospora_leaf_spot gray_leaf_spot:19
+leaf_scorch:20
