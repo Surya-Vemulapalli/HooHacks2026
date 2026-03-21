@@ -1,10 +1,40 @@
 import google.generativeai as genai
 from flask import current_app
 
+_CHAT_SYSTEM_PROMPT = """
+You are PlantBot, an expert assistant specialising in:
+  1. Plant diseases — identification, causes, symptoms, and lifecycle
+  2. Sustainable gardening and farming practices
+  3. Prevention and integrated pest management (IPM)
+  4. Organic and low-impact treatment methods
+  5. Environmental factors (light, temperature, humidity, soil health)
+
+Guidelines:
+- Be concise, practical, and friendly. Use short paragraphs.
+- When diagnosing a disease, always mention: (a) likely cause, (b) visual symptoms to confirm,
+  (c) sustainable prevention steps, (d) treatment options starting from least-invasive.
+- Favour organic and sustainable approaches. Flag chemical treatments as a last resort.
+- If live sensor data for the user's plant is provided, reference it to personalise advice.
+- If you don't know something, say so rather than guessing.
+- Do NOT respond to topics unrelated to plants, gardening, sustainability, or agriculture.
+""".strip()
+
+
+def _configure():
+    genai.configure(api_key=current_app.config["GEMINI_API_KEY"])
+
 
 def _client():
-    genai.configure(api_key=current_app.config["GEMINI_API_KEY"])
+    _configure()
     return genai.GenerativeModel("gemini-1.5-flash")
+
+
+def _chat_model():
+    _configure()
+    return genai.GenerativeModel(
+        "gemini-1.5-flash",
+        system_instruction=_CHAT_SYSTEM_PROMPT,
+    )
 
 
 def analyze_plant_trends(plant_id: str, summary: dict, recent_readings: list) -> dict:
@@ -82,3 +112,52 @@ Respond ONLY with valid JSON matching this schema (no markdown fences):
             "recommendations": [],
             "alerts": [],
         }
+
+
+def chat(message: str, history: list[dict], plant_context: dict | None = None) -> str:
+    """
+    Multi-turn chat with PlantBot.
+
+    Args:
+        message:       The user's latest message.
+        history:       Prior turns as [{"role": "user"|"model", "content": str}, ...].
+        plant_context: Optional dict with live sensor data to inject into the prompt.
+
+    Returns:
+        The assistant's reply as a plain string.
+    """
+    model = _chat_model()
+
+    # Reconstruct Gemini history format
+    gemini_history = [
+        {"role": turn["role"], "parts": [turn["content"]]}
+        for turn in history
+        if turn.get("role") in ("user", "model") and turn.get("content")
+    ]
+
+    # Optionally prepend sensor context to the user message
+    user_message = message
+    if plant_context:
+        ctx_lines = []
+        if plant_context.get("plant_id"):
+            ctx_lines.append(f"Plant ID: {plant_context['plant_id']}")
+        summary = plant_context.get("summary", {})
+        if summary.get("avg_temp") is not None:
+            ctx_lines.append(f"Current avg temperature: {summary['avg_temp']:.1f}°C")
+        if summary.get("avg_light") is not None:
+            ctx_lines.append(f"Current avg light: {summary['avg_light']:.0f} lux")
+        if summary.get("avg_deformity") is not None:
+            ctx_lines.append(f"Deformity score: {summary['avg_deformity']:.2f} / 1.0")
+        if summary.get("deformity_types"):
+            ctx_lines.append(f"Detected deformity types: {summary['deformity_types']}")
+        if ctx_lines:
+            user_message = (
+                "[Live sensor context for this plant]\n"
+                + "\n".join(ctx_lines)
+                + "\n\n"
+                + message
+            )
+
+    chat_session = model.start_chat(history=gemini_history)
+    response = chat_session.send_message(user_message)
+    return response.text.strip()

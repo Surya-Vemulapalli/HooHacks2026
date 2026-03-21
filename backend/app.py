@@ -5,6 +5,7 @@ from config import Config
 from routes.sensor import sensor_bp
 from routes.analytics import analytics_bp
 from routes.recommendations import recommendations_bp
+from routes.chat import chat_bp
 from services import snowflake_service as db
 
 
@@ -18,6 +19,7 @@ def create_app():
     app.register_blueprint(sensor_bp)
     app.register_blueprint(analytics_bp)
     app.register_blueprint(recommendations_bp)
+    app.register_blueprint(chat_bp)
 
     @app.route("/api/health")
     def health():
