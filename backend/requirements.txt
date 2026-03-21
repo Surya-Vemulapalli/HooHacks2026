@@ -3,3 +3,6 @@ flask-cors>=4.0
 python-dotenv>=1.0
 snowflake-connector-python>=3.6
 google-generativeai>=0.7
+tensorflow==2.15.0
+scikit-learn==1.3.2
+numpy==1.26.4
