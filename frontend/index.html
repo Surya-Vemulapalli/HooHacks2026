@@ -22,6 +22,10 @@
     <h1>Plant Health Monitor</h1>
     <span class="subtitle">Real-time sensor data · Powered by Gemini AI</span>
   </div>
+  <div class="live-badge">
+    <span class="live-dot"></span>
+    <span>Live</span>
+  </div>
 </header>
 
 <div class="container">
@@ -31,6 +35,7 @@
     <label for="plant-select">Plant:</label>
     <select id="plant-select"><option>Loading…</option></select>
     <button id="refresh-btn">Refresh</button>
+    <span class="last-updated" id="last-updated"></span>
   </div>
 
   <!-- Stat Cards -->
