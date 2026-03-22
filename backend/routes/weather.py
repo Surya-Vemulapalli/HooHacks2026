@@ -15,5 +15,9 @@ def get_forecast():
     response = requests.get(url)
     
     if response.status_code == 200:
-        return jsonify(response.json())
+        data = response.json()
+        data['owm_api_key'] = api_key  # Include API key for the frontend to load map tiles
+        data['query_lat'] = lat
+        data['query_lon'] = lon
+        return jsonify(data)
     return jsonify({"error": "Failed to fetch weather"}), 500

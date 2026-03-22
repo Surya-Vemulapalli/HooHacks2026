@@ -8,11 +8,15 @@
   --bg:          #f0f7f0;
   --card-bg:     #ffffff;
   --text:        #1c2e1c;
+  --text-1:      #0d1b0e;
+  --text-2:      #4a6e4a;
   --muted:       #6b7c6b;
   --radius:      12px;
   --shadow:      0 2px 12px rgba(0,0,0,.08);
   --shadow-hover: 0 6px 24px rgba(0,0,0,.13);
   --transition:  200ms cubic-bezier(.4,0,.2,1);
+  --surface-1:  rgba(255, 255, 255, 0.95);
+  --surface-2:  rgba(255, 255, 255, 0.15);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -123,7 +127,7 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
 }
 
 /* ── Layout ── */
-.container { max-width: 1280px; margin: 0 auto; padding: 1.5rem 2rem; }
+.container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem; }
 
 /* Controls */
 .controls {
@@ -245,9 +249,61 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
 /* ── Charts ── */
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 1.2rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Weather Grid */
+.weather-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.weather-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+.weather-card:hover {
+  transform: translateY(-4px);
+}
+.w-date {
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 0.5rem;
+}
+.w-desc {
+  font-size: 0.9rem;
+  color: var(--text-2);
+  margin-bottom: 1rem;
+  min-height: 2.5rem;
+}
+.w-temps {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+.w-metrics {
+  display: flex;
+  justify-content: space-around;
+  font-size: 0.85rem;
+  color: var(--text-3);
+  background: var(--surface-2);
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.weather-ai-panel {
+  background: linear-gradient(135deg, rgba(82,196,26,0.1) 0%, rgba(20,20,20,0) 100%);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--green-mid);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
 }
 
 .chart-card {
@@ -502,6 +558,11 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
 @keyframes panel-open {
   from { opacity: 0; transform: scale(.9) translateY(8px); }
   to   { opacity: 1; transform: scale(1)  translateY(0); }
+}
+
+/* Ensure hidden actually hides for the panel even with display flex */
+.chat-panel[hidden] {
+  display: none !important;
 }
 
 /* Header */
@@ -785,70 +846,34 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
 }
 
 .header-logout-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--surface-2);
 }
 
-@keyframes slideUp {
-  0% { opacity: 0; transform: translateY(40px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Modern Login Page Styles ── */
-.login-body {
-  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+/* Tabs */
+.tab-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  height: 100vh;
-  overflow: hidden;
+  gap: 1rem;
+  margin-left: 3rem;
+  position: relative;
+  z-index: 10;
 }
-
-.login-wrapper {
-  perspective: 1000px;
-}
-
-.login-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 3rem 2.5rem;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  max-width: 420px;
-  width: 90vw;
-  transform: translateZ(0);
-  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  border-radius: 12px;
-  text-transform: none;
-  font-weight: 600;
-  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
-  transition: all 0.3s ease;
-}
-
-.login-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.4);
-}
-
-.header-logout-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 0.4rem 1rem;
-  border-radius: 8px;
+.nav-tab {
+  display: inline-block;
+  background: transparent;
+  border: none;
+  font-size: 1rem;
   font-weight: 500;
+  color: #d8f3dc; /* Brighter for header */
   cursor: pointer;
-  transition: background 0.3s;
-  font-size: 0.9rem;
+  padding: 0.5rem 0.2rem;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  text-decoration: none;
 }
-
-.header-logout-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+.nav-tab:hover {
+  color: #fff;
 }
-
-@keyframes slideUp {
-  0% { opacity: 0; transform: translateY(40px); }
-  100% { opacity: 1; transform: translateY(0); }
+.nav-tab.active {
+  color: #fff;
+  border-bottom: 2px solid var(--green-light);
 }
