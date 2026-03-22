@@ -119,3 +119,5 @@ CREATE TABLE plant_readings (
 ```
 
 Run `flask --app app init-db` to create this automatically.
+
+## Deployment on the Cloud ##

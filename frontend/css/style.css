@@ -75,6 +75,53 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
   50%       { opacity: .4; transform: scale(.75); }
 }
 
+/* --- Authentication Section --- */
+#login-section {
+    max-width: 400px;
+    margin: 100px auto; /* Centers it and gives space from the top */
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+#loginForm input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box; /* Crucial: prevents input from overlapping the box */
+}
+
+#loginForm button {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #2e7d32; /* Nice plant green */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+}
+
+#loginForm button:hover {
+    background-color: #1b5e20;
+}
+
 /* ── Layout ── */
 .container { max-width: 1280px; margin: 0 auto; padding: 1.5rem 2rem; }
 
