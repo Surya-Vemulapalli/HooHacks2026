@@ -39,6 +39,10 @@ sudo apt-get install -y \
     libhdf5-dev \
     i2c-tools
 
+# Free up apt cache
+sudo apt-get clean
+sudo rm -rf /var/lib/apt/lists/*
+
 # ── 3. Enable I2C and camera interfaces ─────────────────────────────────────
 echo ""
 echo "[3/7] Enabling I2C for Grove HAT..."
@@ -77,15 +81,19 @@ source "$VENV_DIR/bin/activate"
 # ── 6. Install Python dependencies ──────────────────────────────────────────
 echo ""
 echo "[6/7] Installing Python packages (this may take a while)..."
-pip install --upgrade pip
+pip install --no-cache-dir --upgrade pip
 
-pip install \
+pip install --no-cache-dir \
     requests \
     numpy \
     pillow \
     opencv-python-headless \
     tensorflow \
     grove.py
+
+# Remove leftover caches and bytecode to save space
+pip cache purge 2>/dev/null || true
+find "$VENV_DIR" -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
 # ── 7. Create env file and systemd service ───────────────────────────────────
 echo ""
