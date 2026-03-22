@@ -877,3 +877,17 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
   color: #fff;
   border-bottom: 2px solid var(--green-light);
 }
+
+.hero-banner {
+  background-image: linear-gradient(rgba(27, 67, 50, 0.75), rgba(27, 67, 50, 0.75)), url('../images/dashboard.png');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  padding: 4rem 2rem;
+  border-radius: var(--radius);
+  margin-bottom: 2rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.hero-banner h2 { margin-bottom: 0.5rem; font-size: 2rem; }
+.hero-banner p { font-size: 1.1rem; opacity: 0.9; }
