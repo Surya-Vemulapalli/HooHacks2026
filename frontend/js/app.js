@@ -4,6 +4,7 @@ let tempChart, lightChart, deformityChart;
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
+
 function $(id) { return document.getElementById(id); }
 
 function fmtNum(v, dec = 1) {
@@ -227,9 +228,12 @@ $("plant-select").addEventListener("change", loadDashboard);
 $("refresh-btn").addEventListener("click", loadDashboard);
 $("analyze-btn").addEventListener("click", runAnalysis);
 
-loadPlants();
 
-setInterval(loadDashboard, 30_000);
+setInterval(() => {
+    if ($("dashboard-section").style.display === 'block') {
+        loadDashboard();
+    }
+}, 30_000);
 
 // ── Chat Widget ────────────────────────────────────────────────────────────
 

@@ -1,20 +1,21 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, session
 from flask_cors import CORS
-
 from config import Config
+
 from routes.sensor import sensor_bp
 from routes.analytics import analytics_bp
 from routes.recommendations import recommendations_bp
 from routes.chat import chat_bp
 from routes.weather import weather_bp
 from services import snowflake_service as db
+import os
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    CORS(app)  # Allow requests from the frontend
+    CORS(app, supports_credentials=True, origins=["http://localhost:8080"])  # Allow requests from the frontend + cookies b/w ports
 
     # Register blueprints
     app.register_blueprint(sensor_bp)
@@ -26,6 +27,14 @@ def create_app():
     @app.route("/api/health")
     def health():
         return jsonify({"status": "ok"})
+
+    @app.route('/api/config', methods=['GET'])
+    def get_config():
+        # Only expose the public identifiers, NEVER the secret keys!
+        return jsonify({
+            "domain": os.getenv("AUTH0_DOMAIN"),
+            "clientId": os.getenv("AUTH0_CLIENT_ID")
+        })
 
     @app.cli.command("init-db")
     def init_db_command():
