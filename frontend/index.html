@@ -34,13 +34,22 @@
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
       const client = await initAuth();
+      if (!client) {
+          console.error("Auth0 client failed to initialize.");
+          return;
+      }
+      
       const isAuthenticated = await client.isAuthenticated();
       
       if (isAuthenticated) {
-          window.location.href = "/dashboard";
+          window.location.replace("/dashboard");
       } else {
           document.getElementById("auth0-login-btn").addEventListener("click", async () => {
-              await client.loginWithRedirect();
+              await client.loginWithRedirect({
+                  authorizationParams: {
+                      prompt: "login"
+                  }
+              });
           });
       }
   });

@@ -1,12 +1,12 @@
 import json
 from urllib.request import urlopen
 from functools import wraps
-from flask import request, jsonify, _request_ctx_stack
+from flask import request, jsonify, g
 from jose import jwt
 import os
 
 AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
-API_AUDIENCE = os.getenv("AUTH0_AUDIENCE")
+API_AUDIENCE = os.getenv("AUTH0_CLIENT_ID") # We check the ID token now instead of an Access API Token
 ALGORITHMS = ["RS256"]
 
 class AuthError(Exception):
@@ -66,7 +66,7 @@ def requires_auth(f):
                     audience=API_AUDIENCE,
                     issuer=f"https://{AUTH0_DOMAIN}/"
                 )
-                _request_ctx_stack.top.current_user = payload
+                g.current_user = payload
                 return f(*args, **kwargs)
         except Exception as e:
             return jsonify({"message": "Invalid token", "error": str(e)}), 401

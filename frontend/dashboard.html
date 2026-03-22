@@ -193,10 +193,15 @@
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     const client = await initAuth();
+    if (!client) {
+        window.location.replace("/");
+        return;
+    }
+    
     const isAuthenticated = await client.isAuthenticated();
 
     if (!isAuthenticated) {
-        window.location.href = "/";
+        window.location.replace("/");
         return;
     }
 

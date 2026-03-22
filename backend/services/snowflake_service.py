@@ -110,3 +110,30 @@ def get_all_plants():
         )
         cols = [d[0].lower() for d in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+def sync_auth0_user(auth0_id, email, name):
+    with get_connection() as conn:
+        # Create users table if it doesn't exist
+        conn.cursor().execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                auth0_id VARCHAR(128) PRIMARY KEY,
+                email VARCHAR(255),
+                name VARCHAR(255),
+                created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+                last_login TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+            )
+        """)
+        
+        # Upsert the user into Snowflake (Merge)
+        conn.cursor().execute(
+            """
+            MERGE INTO users u
+            USING (SELECT %s AS auth0_id, %s AS email, %s AS name) s
+            ON u.auth0_id = s.auth0_id
+            WHEN MATCHED THEN 
+                UPDATE SET email = s.email, name = s.name, last_login = CURRENT_TIMESTAMP()
+            WHEN NOT MATCHED THEN 
+                INSERT (auth0_id, email, name) VALUES (s.auth0_id, s.email, s.name)
+            """,
+            (auth0_id, email, name)
+        )
