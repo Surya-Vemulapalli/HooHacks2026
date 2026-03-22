@@ -7,28 +7,39 @@
   <link rel="stylesheet" href="css/style.css" />
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- Leaflet CSS and JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <!-- Auth0 SPA JS SDK -->
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
 </head>
 <body>
 
 <header>
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 22V12"/>
-    <path d="M5 12C5 7 8 3 12 3s7 4 7 9"/>
-    <path d="M12 12C10 8 6 6 2 7"/>
-    <path d="M12 12c2-4 6-6 10-5"/>
-  </svg>
-  <div>
-    <h1>Plant Health Monitor</h1>
-    <span class="subtitle">Real-time sensor data</span>
+  <div style="display: flex; align-items: center; gap: 1rem;">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22V12"/>
+      <path d="M5 12C5 7 8 3 12 3s7 4 7 9"/>
+      <path d="M12 12C10 8 6 6 2 7"/>
+      <path d="M12 12c2-4 6-6 10-5"/>
+    </svg>
+    <div>
+      <h1>Plant Health Monitor</h1>
+      <span class="subtitle">Real-time sensor data · Powered by Gemini AI</span>
+    </div>
   </div>
-  <div class="live-badge">
-    <span class="live-dot"></span>
-    <span>Live</span>
-  </div>
-  <div style="margin-left: auto;">
+
+  <nav class="header-nav tab-container">
+    <a href="/dashboard.html" class="nav-tab active" style="text-decoration: none; color: inherit; padding: 0.5rem 1rem;">Dashboard</a>
+    <a href="/weather.html" class="nav-tab" style="text-decoration: none; color: inherit; padding: 0.5rem 1rem;">Weather</a>
+  </nav>
+
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 1rem;">
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      <span>Live</span>
+    </div>
     <button id="auth0-logout-btn" class="header-logout-btn">Log Out</button>
   </div>
 </header>
@@ -64,6 +75,11 @@
       <span class="unit">lux</span>
     </div>
     <div class="stat-card">
+      <span class="label">Avg Soil Moisture (24 h)</span>
+      <span class="value" id="stat-soil">—</span>
+      <span class="unit">0 – 1024</span>
+    </div>
+    <div class="stat-card">
       <span class="label">Avg Deformity Score (24 h)</span>
       <span class="value" id="stat-def">—</span>
       <span class="unit">0 – 1</span>
@@ -86,6 +102,10 @@
       <canvas id="light-chart"></canvas>
     </div>
     <div class="chart-card">
+      <h3>Soil Moisture over Time</h3>
+      <canvas id="soil-chart"></canvas>
+    </div>
+    <div class="chart-card">
       <h3>Deformity Score over Time</h3>
       <canvas id="deformity-chart"></canvas>
     </div>
@@ -105,11 +125,13 @@
       </span>
     </h2>
     <div id="gemini-content">
-      <p class="placeholder">Click "Run Analysis."</p>
+      <p class="placeholder">Click "Run AI Analysis" to get Gemini-powered recommendations for this plant.</p>
     </div>
   </div>
-  </div>
-</section>
+  </section>
+
+</div>
+
 <!-- ── Chat Widget ── -->
 <div id="chat-widget" class="chat-widget" aria-live="polite">
 
@@ -220,6 +242,7 @@
     $("plant-select").addEventListener("change", loadDashboard);
     $("refresh-btn").addEventListener("click", loadDashboard);
     $("analyze-btn").addEventListener("click", runAnalysis);
+    
     loadPlants();
     setInterval(loadDashboard, 30_000);
   });
