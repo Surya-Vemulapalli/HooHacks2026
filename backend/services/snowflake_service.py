@@ -35,25 +35,33 @@ def init_db():
                 recorded_at TIMESTAMP_NTZ NOT NULL DEFAULT CURRENT_TIMESTAMP(),
                 temperature FLOAT,
                 light_level FLOAT,
+                soil_moisture FLOAT,
                 deformity_score FLOAT,
                 deformity_type  VARCHAR(128),
                 image_url       VARCHAR(1024)
             )
         """)
 
+        # Migration: add soil_moisture column to existing tables
+        try:
+            cur.execute("ALTER TABLE plant_readings ADD COLUMN soil_moisture FLOAT")
+        except Exception:
+            pass  # column already exists
+
 
 def insert_reading(plant_id, device_id, temperature, light_level,
-                   deformity_score, deformity_type=None, image_url=None):
+                   deformity_score, soil_moisture=None, deformity_type=None,
+                   image_url=None):
     with get_connection() as conn:
         conn.cursor().execute(
             """
             INSERT INTO plant_readings
                 (plant_id, device_id, temperature, light_level,
-                 deformity_score, deformity_type, image_url)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                 soil_moisture, deformity_score, deformity_type, image_url)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (plant_id, device_id, temperature, light_level,
-             deformity_score, deformity_type, image_url),
+             soil_moisture, deformity_score, deformity_type, image_url),
         )
 
 
@@ -63,7 +71,8 @@ def get_readings(plant_id, limit=100):
         cur.execute(
             """
             SELECT id, plant_id, device_id, recorded_at,
-                   temperature, light_level, deformity_score, deformity_type, image_url
+                   temperature, light_level, soil_moisture,
+                   deformity_score, deformity_type, image_url
             FROM plant_readings
             WHERE plant_id = %s
             ORDER BY recorded_at DESC
@@ -89,6 +98,9 @@ def get_trend_summary(plant_id, hours=24):
                 AVG(light_level)                  AS avg_light,
                 MIN(light_level)                  AS min_light,
                 MAX(light_level)                  AS max_light,
+                AVG(soil_moisture)                AS avg_soil_moisture,
+                MIN(soil_moisture)                AS min_soil_moisture,
+                MAX(soil_moisture)                AS max_soil_moisture,
                 AVG(deformity_score)              AS avg_deformity,
                 MAX(deformity_score)              AS max_deformity,
                 LISTAGG(DISTINCT deformity_type, ', ')
