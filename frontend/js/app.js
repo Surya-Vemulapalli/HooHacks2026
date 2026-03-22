@@ -332,6 +332,11 @@ chatClearBtn.addEventListener("click", () => {
         Conversation cleared. Ask me anything about plant health, diseases, or sustainability!
       </span>
     </div>`;
+  chatSuggestions.innerHTML = `
+    <button class="chip">Why are my leaves yellowing?</button>
+    <button class="chip">Sustainable pest control tips</button>
+    <button class="chip">Ideal temperature for growth</button>
+    <button class="chip">Signs of root rot</button>`;
   chatSuggestions.hidden = false;
 });
 
@@ -462,6 +467,12 @@ async function sendMessage() {
     } else {
       appendMessage("bot", data.reply);
       chatHistory = data.history;
+      if (data.suggestions && data.suggestions.length) {
+        chatSuggestions.innerHTML = data.suggestions
+          .map(s => `<button class="chip">${s}</button>`)
+          .join("");
+        chatSuggestions.hidden = false;
+      }
     }
   } catch (e) {
     removeTyping();
