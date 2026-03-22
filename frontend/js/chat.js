@@ -116,15 +116,16 @@ function buildPlantContext() {
   const plantId = $("plant-select")?.value;
   if (!plantId) return null;
 
-  // Pull values from stat cards if populated
   const avgTemp  = parseFloat($("stat-temp")?.textContent);
   const avgLight = parseFloat($("stat-light")?.textContent);
+  const avgSoil  = parseFloat($("stat-soil")?.textContent);
   const avgDef   = parseFloat($("stat-def")?.textContent);
 
   const summary = {};
-  if (!isNaN(avgTemp))  summary.avg_temp      = avgTemp;
-  if (!isNaN(avgLight)) summary.avg_light     = avgLight;
-  if (!isNaN(avgDef))   summary.avg_deformity = avgDef;
+  if (!isNaN(avgTemp))  summary.avg_temp           = avgTemp;
+  if (!isNaN(avgLight)) summary.avg_light          = avgLight;
+  if (!isNaN(avgSoil))  summary.avg_soil_moisture   = avgSoil;
+  if (!isNaN(avgDef))   summary.avg_deformity      = avgDef;
 
   return { plant_id: plantId, summary };
 }
@@ -153,7 +154,7 @@ async function sendMessage() {
       plant_context: buildPlantContext(),
     };
 
-    const res = await fetch("/api/chat", {
+    const res = await fetch(`${API_BASE}/chat`, {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify(body),
