@@ -33,8 +33,9 @@ async function loadDashboard() {
 }
 
 function updateStats(s) {
-  countUp($("stat-temp"),  s.avg_temp,      1);
-  countUp($("stat-light"), s.avg_light,     0, 500);
-  countUp($("stat-def"),   s.avg_deformity, 2);
-  countUp($("stat-count"), s.reading_count, 0, 400);
+  countUp($("stat-temp"),  s.avg_temp,          1);
+  countUp($("stat-light"), s.avg_light,         0, 500);
+  countUp($("stat-soil"),  s.avg_soil_moisture,  0, 500);
+  countUp($("stat-def"),   s.avg_deformity,     2);
+  countUp($("stat-count"), s.reading_count,     0, 400);
 }

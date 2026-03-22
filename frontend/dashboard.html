@@ -71,6 +71,11 @@
       <span class="unit">lux</span>
     </div>
     <div class="stat-card">
+      <span class="label">Avg Soil Moisture (24 h)</span>
+      <span class="value" id="stat-soil">—</span>
+      <span class="unit">0 – 1024</span>
+    </div>
+    <div class="stat-card">
       <span class="label">Avg Deformity Score (24 h)</span>
       <span class="value" id="stat-def">—</span>
       <span class="unit">0 – 1</span>
@@ -91,6 +96,10 @@
     <div class="chart-card">
       <h3>Light Level over Time</h3>
       <canvas id="light-chart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Soil Moisture over Time</h3>
+      <canvas id="soil-chart"></canvas>
     </div>
     <div class="chart-card">
       <h3>Deformity Score over Time</h3>
