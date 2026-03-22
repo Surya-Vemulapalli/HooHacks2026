@@ -176,7 +176,7 @@ def chat(message: str, history: list[dict], plant_context: dict | None = None) -
         if summary.get("avg_light") is not None:
             ctx_lines.append(f"Current avg light: {summary['avg_light']:.0f} lux")
         if summary.get("avg_soil_moisture") is not None:
-            ctx_lines.append(f"Current avg soil moisture: {summary['avg_soil_moisture']:.0f} / 1000 (higher = wetter)")
+            ctx_lines.append(f"Current avg soil moisture: {summary['avg_soil_moisture']:.0f} / 1024 (higher = wetter)")
         if summary.get("avg_deformity") is not None:
             ctx_lines.append(f"Deformity score: {summary['avg_deformity']:.2f} / 1.0")
         if summary.get("deformity_types"):
