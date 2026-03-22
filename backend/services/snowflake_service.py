@@ -16,9 +16,18 @@ def get_connection():
 
 
 def init_db():
-    """Create tables if they don't exist."""
+    """Create database and tables if they don't exist."""
     with get_connection() as conn:
-        conn.cursor().execute("""
+        cur = conn.cursor()
+        cfg = current_app.config
+        db_name = cfg["SNOWFLAKE_DATABASE"]
+        schema_name = cfg["SNOWFLAKE_SCHEMA"]
+
+        cur.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
+        cur.execute(f"USE DATABASE {db_name}")
+        cur.execute(f"USE SCHEMA {schema_name}")
+
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS plant_readings (
                 id          INTEGER AUTOINCREMENT PRIMARY KEY,
                 plant_id    VARCHAR(64)   NOT NULL,
