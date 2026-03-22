@@ -18,6 +18,7 @@ async function loadWeather() {
         return;
       }
 
+      window.currentWeatherData = data;
       renderWeather(data);
     } catch (err) {
       console.error("Failed to load weather:", err);
@@ -79,6 +80,24 @@ function processForecast(list) {
   });
 }
 
+window.currentTempUnit = window.currentTempUnit || 'C';
+window.setTempUnit = function(unit) {
+  window.currentTempUnit = unit;
+  if (window.currentWeatherData) {
+    renderWeather(window.currentWeatherData);
+  }
+};
+
+function formatTemp(tempC) {
+  const t = parseFloat(tempC);
+  if (window.currentTempUnit === 'F') {
+    return ((t * 9/5) + 32).toFixed(1) + '°F';
+  } else if (window.currentTempUnit === 'K') {
+    return (t + 273.15).toFixed(1) + 'K';
+  }
+  return t.toFixed(1) + '°C';
+}
+
 function renderWeather(data) {
   const forecastDays = processForecast(data.list);
   const container = $("weather-container");
@@ -90,8 +109,19 @@ function renderWeather(data) {
         <h3 style="margin-bottom:0.5rem; font-size:1.5rem;">${city} Forecast</h3>
         <span class="subtitle">Next 5 days</span>
       </div>
-      <div>
-        <button class="primary-btn" id="analyze-weather-btn">Analyze Weather Details</button>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem;">
+        <div class="unit-toggle" style="display:flex; gap:0.25rem;">
+          <button class="unit-btn ${window.currentTempUnit === 'C' ? 'active' : ''}" onclick="window.setTempUnit('C')">°C</button>
+          <button class="unit-btn ${window.currentTempUnit === 'F' ? 'active' : ''}" onclick="window.setTempUnit('F')">°F</button>
+          <button class="unit-btn ${window.currentTempUnit === 'K' ? 'active' : ''}" onclick="window.setTempUnit('K')">K</button>
+        </div>
+        <button class="modern-grad-btn" id="analyze-weather-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4l3 3"/>
+          </svg>
+          Analyze Weather Details
+        </button>
       </div>
     </div>
     
@@ -110,8 +140,8 @@ function renderWeather(data) {
         <img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.desc}" />
         <div class="w-desc" style="text-transform: capitalize;">${day.desc}</div>
         <div class="w-temps">
-          <span style="font-weight:bold; color:var(--text-1);">${day.maxTemp}°C</span> 
-          <span style="color:var(--text-3);">/ ${day.minTemp}°C</span>
+          <span style="font-weight:bold; color:var(--text-1);">${formatTemp(day.maxTemp)}</span> 
+          <span style="color:var(--text-3);">/ ${formatTemp(day.minTemp)}</span>
         </div>
         <div class="w-metrics">
           <span>💧 ${day.rain} mm</span>
