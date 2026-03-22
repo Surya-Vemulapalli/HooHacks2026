@@ -4,6 +4,7 @@ let tempChart, lightChart, deformityChart;
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
+
 function $(id) { return document.getElementById(id); }
 
 function fmtNum(v, dec = 1) {
@@ -227,9 +228,18 @@ $("plant-select").addEventListener("change", loadDashboard);
 $("refresh-btn").addEventListener("click", loadDashboard);
 $("analyze-btn").addEventListener("click", runAnalysis);
 
-loadPlants();
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = $("loginForm");
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+});
 
-setInterval(loadDashboard, 30_000);
+setInterval(() => {
+    if ($("dashboard-section").style.display === 'block') {
+        loadDashboard();
+    }
+}, 30_000);
 
 // ── Chat Widget ────────────────────────────────────────────────────────────
 
@@ -391,4 +401,42 @@ async function sendMessage() {
     chatSendBtn.disabled = false;
     chatInput.focus();
   }
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const username = $("username").value;
+    const password = $("password").value;
+    const errorMsg = $("login-error");
+
+    try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // 1. Hide Login, Show Dashboard
+            $("login-section").style.display = 'none';
+            $("dashboard-section").style.display = 'block';
+            
+            // 2. Show the Chat Widget (it was hidden by default)
+            $("chat-widget").style.display = 'block';
+
+            // 3. Start the data engine
+            loadPlants(); 
+            // This calls your existing loadPlants() which then calls loadDashboard()
+        } else {
+            errorMsg.textContent = data.error || "Invalid login";
+            errorMsg.style.display = 'block';
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        errorMsg.textContent = "Server connection failed.";
+        errorMsg.style.display = 'block';
+    }
 }
