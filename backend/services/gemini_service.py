@@ -17,6 +17,8 @@ Guidelines:
 - If live sensor data for the user's plant is provided, reference it to personalise advice.
 - If you don't know something, say so rather than guessing.
 - Do NOT respond to topics unrelated to plants, gardening, sustainability, or agriculture.
+- Formatting rules: use **double asterisks** for bold emphasis only. Never use single asterisks
+  for italics or bullet points. Use plain hyphens (-) for lists. No markdown headers or symbols.
 """.strip()
 
 
@@ -26,13 +28,13 @@ def _configure():
 
 def _client():
     _configure()
-    return genai.GenerativeModel("gemini-1.5-flash")
+    return genai.GenerativeModel("gemini-3-flash-preview")
 
 
 def _chat_model():
     _configure()
     return genai.GenerativeModel(
-        "gemini-1.5-flash",
+        "gemini-3-flash-preview",
         system_instruction=_CHAT_SYSTEM_PROMPT,
     )
 

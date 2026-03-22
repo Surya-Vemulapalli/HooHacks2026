@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv("snowflake.env")
+load_dotenv("../.env", override=False)
 
 class Config:
     # Flask

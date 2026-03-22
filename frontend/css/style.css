@@ -464,7 +464,10 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  cursor: grab;
+  user-select: none;
 }
+.chat-header:active { cursor: grabbing; }
 .chat-header-info {
   display: flex;
   align-items: center;
@@ -483,6 +486,7 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
   font-size: .72rem;
   opacity: .7;
 }
+.chat-minimize,
 .chat-clear {
   background: none;
   border: none;
@@ -494,7 +498,24 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
   align-items: center;
   transition: color var(--transition), background var(--transition);
 }
+.chat-minimize:hover,
 .chat-clear:hover { color: #fff; background: rgba(255,255,255,.12); }
+
+/* Minimized state — collapse everything below the header */
+.chat-panel.minimized .chat-messages,
+.chat-panel.minimized .chat-suggestions,
+.chat-panel.minimized .chat-input-row { display: none; }
+
+/* Hide the floating toggle when minimized so only the header bar shows */
+.chat-widget.minimized .chat-toggle { display: none; }
+
+/* Header is clickable to restore when minimized */
+.chat-widget.minimized .chat-header { cursor: pointer; }
+
+/* Icon swap in minimize button */
+.chat-minimize .icon-maximize { display: none; }
+.chat-panel.minimized .chat-minimize .icon-minimize { display: none; }
+.chat-panel.minimized .chat-minimize .icon-maximize { display: flex; }
 
 /* Message list */
 .chat-messages {
