@@ -13,24 +13,24 @@ def ingest_reading():
     {
         "plant_id":        "plant-01",
         "device_id":       "rpi-kitchen-01",
-        "temperature":     23.4,
-        "light_level":     4500,
         "deformity_score": 0.12,
-        "deformity_type":  "leaf_curl",   // optional
-        "image_url":       "https://..."  // optional
+        "temperature":     23.4,            // optional
+        "light_level":     4500,            // optional
+        "deformity_type":  "leaf_curl",     // optional
+        "image_url":       "https://..."    // optional
     }
     """
     data = request.get_json(force=True)
 
-    required = {"plant_id", "device_id", "temperature", "light_level", "deformity_score"}
+    required = {"plant_id", "device_id", "deformity_score"}
     missing = required - data.keys()
     if missing:
         return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
 
     try:
-        temperature = float(data["temperature"])
-        light_level = float(data["light_level"])
         deformity_score = float(data["deformity_score"])
+        temperature = float(data["temperature"]) if "temperature" in data else None
+        light_level = float(data["light_level"]) if "light_level" in data else None
     except (ValueError, TypeError) as exc:
         return jsonify({"error": f"Invalid numeric value: {exc}"}), 400
 
