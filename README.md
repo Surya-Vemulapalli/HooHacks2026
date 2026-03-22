@@ -24,16 +24,30 @@ HooHacks2026/
 │   ├── routes/
 │   │   ├── sensor.py                 # POST /api/sensor/reading
 │   │   ├── analytics.py              # GET  /api/analytics/readings/:plant_id
-│   │   └── recommendations.py        # GET  /api/recommendations/:plant_id
+│   │   ├── recommendations.py        # GET  /api/recommendations/:plant_id
+│   │   ├── chat.py                   # POST /api/chat
+│   │   ├── weather.py                # GET  /api/weather/forecast
+│   │   └── users.py                  # POST /api/users/sync
 │   └── services/
 │       ├── snowflake_service.py      # Snowflake queries
-│       └── gemini_service.py         # Gemini AI analysis
+│       ├── gemini_service.py         # Gemini AI analysis
+│       └── auth0.py                  # JWT validation decorator
 ├── frontend/
-│   ├── index.html                    # Dashboard
+│   ├── index.html                    # Login page
+│   ├── dashboard.html                # Main dashboard
+│   ├── weather.html                  # Weather forecast page
 │   ├── css/style.css
-│   └── js/app.js                     # Chart.js + API calls
+│   └── js/
+│       ├── app.js                    # App entry point
+│       ├── auth.js                   # Auth0 SPA SDK setup
+│       ├── chat.js                   # PlantBot chat widget
+│       ├── charts.js                 # Chart.js wrappers
+│       ├── dashboard.js              # Dashboard logic
+│       ├── weather.js                # Weather UI
+│       └── utils.js                  # Shared helpers
 └── raspberry_pi/
-    └── sensor_client.py              # Pi polling loop
+    ├── sensor_client.py              # Pi polling loop
+    └── setup_pi.sh                   # Pi setup script
 ```
 
 ## Quick Start
@@ -45,7 +59,7 @@ cd backend
 cp .env.example .env          # Fill in Snowflake + Gemini credentials
 pip install -r requirements.txt
 flask --app app init-db       # Create Snowflake tables
-python app.py                 # Runs on http://0.0.0.0:5000
+python app.py                 # Runs on http://0.0.0.0:6000
 ```
 
 ### 2. Frontend
@@ -83,6 +97,11 @@ python sensor_client.py
 | `GET`  | `/api/analytics/readings/:plant_id` | Time-series readings (query: `?limit=100`) |
 | `GET`  | `/api/analytics/summary/:plant_id` | 24-h aggregate stats (query: `?hours=24`) |
 | `GET`  | `/api/recommendations/:plant_id` | Gemini AI analysis & recommendations |
+| `POST` | `/api/recommendations/weather` | Weather-based plant risk analysis |
+| `POST` | `/api/chat` | Multi-turn PlantBot chat |
+| `GET`  | `/api/weather/forecast` | 7-day weather forecast (query: `?lat=&lon=`) |
+| `POST` | `/api/users/sync` | Sync Auth0 user to Snowflake (requires auth) |
+| `GET`  | `/api/config` | Public Auth0 config for frontend |
 | `GET`  | `/api/health` | Backend health check |
 
 ### POST /api/sensor/reading — body
@@ -91,16 +110,18 @@ python sensor_client.py
 {
   "plant_id":        "plant-01",
   "device_id":       "rpi-kitchen-01",
+  "deformity_score": 0.12,
   "temperature":     23.4,
   "light_level":     4500,
-  "deformity_score": 0.12,
+  "soil_moisture":   650,
   "deformity_type":  "leaf_curl",
   "image_url":       "https://..."
 }
 ```
 
+`plant_id`, `device_id`, and `deformity_score` are required.
 `deformity_score` must be between 0 (healthy) and 1 (severe).
-`deformity_type` and `image_url` are optional.
+`temperature`, `light_level`, `soil_moisture` (raw ADC 0–1000), `deformity_type`, and `image_url` are optional.
 
 ## Snowflake Table
 
@@ -112,6 +133,7 @@ CREATE TABLE plant_readings (
     recorded_at     TIMESTAMP_NTZ NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     temperature     FLOAT,
     light_level     FLOAT,
+    soil_moisture   FLOAT,
     deformity_score FLOAT,
     deformity_type  VARCHAR(128),
     image_url       VARCHAR(1024)
@@ -156,6 +178,9 @@ SNOWFLAKE_ROLE=SYSADMIN
 
 # Google Gemini
 GEMINI_API_KEY=<your-gemini-api-key>
+
+# OpenWeatherMap
+OPENWEATHER_API_KEY=<your-openweathermap-api-key>
 
 # Auth0
 AUTH0_DOMAIN=<your-tenant>.auth0.com
