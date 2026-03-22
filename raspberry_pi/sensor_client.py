@@ -32,9 +32,9 @@ DEVICE_ID     = os.getenv("DEVICE_ID",    "rpi-01")
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "300"))  # seconds (default 5 min)
 
 # Sensor toggles — set to "0" or "false" to disable
-ENABLE_TEMP_SENSOR  = os.getenv("ENABLE_TEMP_SENSOR",  "false").lower() in ("1", "true", "yes")
+ENABLE_TEMP_SENSOR  = os.getenv("ENABLE_TEMP_SENSOR",  "true").lower() in ("1", "true", "yes")
 ENABLE_LIGHT_SENSOR = os.getenv("ENABLE_LIGHT_SENSOR", "false").lower() in ("1", "true", "yes")
-ENABLE_SOIL_SENSOR  = os.getenv("ENABLE_SOIL_SENSOR",  "false").lower() in ("1", "true", "yes")
+ENABLE_SOIL_SENSOR  = os.getenv("ENABLE_SOIL_SENSOR",  "true").lower() in ("1", "true", "yes")
 ENABLE_CAMERA       = os.getenv("ENABLE_CAMERA",       "true").lower()  in ("1", "true", "yes")
 
 # Grove moisture sensor config (analog pin on Grove HAT)
@@ -164,14 +164,15 @@ def classify_image(model, image_array):
 
 # ── Sensor helpers (optional) ──────────────────────────────────────────────
 
+TEMP_SENSOR_PIN = int(os.getenv("TEMP_SENSOR_PIN", "4"))  # A4 by default
+
 def read_temperature():
-    """Read temperature from DHT22 sensor. Returns °C or None."""
+    """Read temperature from Grove Temperature Sensor. Returns °C or None."""
     if not ENABLE_TEMP_SENSOR:
         return None
     try:
-        import adafruit_dht
-        import board
-        sensor = adafruit_dht.DHT22(board.D4)
+        from grove.grove_temperature_sensor import GroveTemperatureSensor
+        sensor = GroveTemperatureSensor(TEMP_SENSOR_PIN)
         temp = sensor.temperature
         log.info("Temperature: %.1f°C", temp)
         return temp
