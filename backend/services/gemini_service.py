@@ -74,9 +74,9 @@ data for plant "{plant_id}" and provide actionable recommendations.
 
 === 24-HOUR TREND SUMMARY ===
 Total readings : {summary.get('reading_count')}
-Temperature    : avg {summary.get('avg_temp', 'N/A'):.1f}°C, range [{summary.get('min_temp', 'N/A'):.1f} – {summary.get('max_temp', 'N/A'):.1f}]°C
-Light level    : avg {summary.get('avg_light', 'N/A'):.0f} lux, range [{summary.get('min_light', 'N/A'):.0f} – {summary.get('max_light', 'N/A'):.0f}] lux
-Deformity score: avg {summary.get('avg_deformity', 0):.2f}, max {summary.get('max_deformity', 0):.2f} (0=healthy, 1=severe)
+Temperature    : avg {summary.get('avg_temp') if summary.get('avg_temp') is not None else 'N/A'}, range [{summary.get('min_temp') if summary.get('min_temp') is not None else 'N/A'} – {summary.get('max_temp') if summary.get('max_temp') is not None else 'N/A'}]°C
+Light level    : avg {summary.get('avg_light') if summary.get('avg_light') is not None else 'N/A'} lux, range [{summary.get('min_light') if summary.get('min_light') is not None else 'N/A'} – {summary.get('max_light') if summary.get('max_light') is not None else 'N/A'}] lux
+Deformity score: avg {summary.get('avg_deformity', 0)}, max {summary.get('max_deformity', 0)} (0=healthy, 1=severe)
 Deformity types: {summary.get('deformity_types') or 'none detected'}
 
 === MOST RECENT READINGS ===
