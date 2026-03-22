@@ -1,16 +1,17 @@
 """
 Raspberry Pi sensor client for Plant Health Monitor.
 
-Reads temperature, light level, and deformity score from sensors/camera,
-then POSTs the data to the Flask backend every POLL_INTERVAL seconds.
+Reads temperature, light level, soil moisture, and deformity score from
+sensors/camera, then POSTs the data to the Flask backend every POLL_INTERVAL seconds.
 
 Hardware assumptions:
   - DHT22 temperature/humidity sensor on GPIO pin 4  (optional)
   - TSL2591 or BH1750 I2C light sensor               (optional)
+  - Grove moisture sensor on Grove HAT analog pin     (optional)
   - Camera + Keras model for plant deformity classification
 
 Install dependencies on the Pi:
-  pip install requests adafruit-circuitpython-dht board tensorflow pillow opencv-python numpy
+  pip install requests adafruit-circuitpython-dht board tensorflow pillow opencv-python numpy grove.py
 """
 
 import os
@@ -33,7 +34,11 @@ POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "300"))  # seconds (default 5 min
 # Sensor toggles — set to "0" or "false" to disable
 ENABLE_TEMP_SENSOR  = os.getenv("ENABLE_TEMP_SENSOR",  "false").lower() in ("1", "true", "yes")
 ENABLE_LIGHT_SENSOR = os.getenv("ENABLE_LIGHT_SENSOR", "false").lower() in ("1", "true", "yes")
+ENABLE_SOIL_SENSOR  = os.getenv("ENABLE_SOIL_SENSOR",  "false").lower() in ("1", "true", "yes")
 ENABLE_CAMERA       = os.getenv("ENABLE_CAMERA",       "true").lower()  in ("1", "true", "yes")
+
+# Grove moisture sensor config (analog pin on Grove HAT)
+SOIL_SENSOR_PIN = int(os.getenv("SOIL_SENSOR_PIN", "0"))  # A0 by default
 
 # Camera / model config
 MODEL_PATH    = os.getenv("MODEL_PATH", "model.keras")
@@ -193,6 +198,24 @@ def read_light_level():
         return None
 
 
+def read_soil_moisture():
+    """Read soil moisture from Grove moisture sensor via Grove HAT ADC.
+
+    Returns the raw analog value (0 = dry, ~1000 = saturated) or None.
+    """
+    if not ENABLE_SOIL_SENSOR:
+        return None
+    try:
+        from grove.adc import ADC
+        adc = ADC()
+        raw = adc.read(SOIL_SENSOR_PIN)
+        log.info("Soil moisture (raw): %d", raw)
+        return raw
+    except Exception as e:
+        log.warning("Soil moisture read failed: %s", e)
+        return None
+
+
 # ── Main loop ──────────────────────────────────────────────────────────────
 
 def main():
@@ -208,14 +231,15 @@ def main():
 
     log.info("Starting sensor client  Plant=%s  Device=%s  Interval=%ds",
              PLANT_ID, DEVICE_ID, POLL_INTERVAL)
-    log.info("Sensors enabled — temp=%s  light=%s  camera=%s",
-             ENABLE_TEMP_SENSOR, ENABLE_LIGHT_SENSOR, ENABLE_CAMERA)
+    log.info("Sensors enabled — temp=%s  light=%s  soil=%s  camera=%s",
+             ENABLE_TEMP_SENSOR, ENABLE_LIGHT_SENSOR, ENABLE_SOIL_SENSOR, ENABLE_CAMERA)
 
     while True:
         try:
             # ── Read optional sensors ──
             temperature = read_temperature()
             light_level = read_light_level()
+            soil_moisture = read_soil_moisture()
 
             # ── Camera classification ──
             deformity_score = 0.0
@@ -240,11 +264,13 @@ def main():
                 payload["temperature"] = temperature
             if light_level is not None:
                 payload["light_level"] = light_level
+            if soil_moisture is not None:
+                payload["soil_moisture"] = soil_moisture
             if deformity_type:
                 payload["deformity_type"] = deformity_type
 
-            log.info("Sending: temp=%s  light=%s  deformity=%.2f  type=%s",
-                     temperature, light_level, deformity_score, deformity_type)
+            log.info("Sending: temp=%s  light=%s  soil=%s  deformity=%.2f  type=%s",
+                     temperature, light_level, soil_moisture, deformity_score, deformity_type)
 
             resp = requests.post(endpoint, json=payload, timeout=10)
             resp.raise_for_status()

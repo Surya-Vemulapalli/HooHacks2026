@@ -16,6 +16,7 @@ def ingest_reading():
         "deformity_score": 0.12,
         "temperature":     23.4,            // optional
         "light_level":     4500,            // optional
+        "soil_moisture":   650,             // optional (raw ADC 0-1000)
         "deformity_type":  "leaf_curl",     // optional
         "image_url":       "https://..."    // optional
     }
@@ -31,6 +32,7 @@ def ingest_reading():
         deformity_score = float(data["deformity_score"])
         temperature = float(data["temperature"]) if "temperature" in data else None
         light_level = float(data["light_level"]) if "light_level" in data else None
+        soil_moisture = float(data["soil_moisture"]) if "soil_moisture" in data else None
     except (ValueError, TypeError) as exc:
         return jsonify({"error": f"Invalid numeric value: {exc}"}), 400
 
@@ -42,6 +44,7 @@ def ingest_reading():
         device_id=data["device_id"],
         temperature=temperature,
         light_level=light_level,
+        soil_moisture=soil_moisture,
         deformity_score=deformity_score,
         deformity_type=data.get("deformity_type"),
         image_url=data.get("image_url"),
