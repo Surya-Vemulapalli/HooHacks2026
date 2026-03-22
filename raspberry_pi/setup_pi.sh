@@ -9,9 +9,9 @@
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-REPO_URL="https://github.com/Surya-Vemulapalli/HooHacks2026.git"
-INSTALL_DIR="$HOME/HooHacks2026"
-VENV_DIR="$INSTALL_DIR/raspberry_pi/venv"
+REPO_RAW="https://raw.githubusercontent.com/Surya-Vemulapalli/HooHacks2026/main"
+INSTALL_DIR="$HOME/plant-monitor"
+VENV_DIR="$INSTALL_DIR/venv"
 
 echo "========================================="
 echo "  HooHacks Plant Monitor — Pi Setup"
@@ -31,7 +31,7 @@ sudo apt-get install -y \
     python3-pip \
     python3-venv \
     python3-dev \
-    git \
+    curl \
     libatlas-base-dev \
     libjpeg-dev \
     libopenjp2-7 \
@@ -55,15 +55,18 @@ else
     echo "  → I2C already enabled"
 fi
 
-# ── 4. Clone the repo ───────────────────────────────────────────────────────
+# ── 4. Download required files ──────────────────────────────────────────────
 echo ""
-echo "[4/7] Cloning repository..."
-if [ -d "$INSTALL_DIR" ]; then
-    echo "  → Repo already exists, pulling latest..."
-    cd "$INSTALL_DIR" && git pull
-else
-    git clone "$REPO_URL" "$INSTALL_DIR"
-fi
+echo "[4/7] Downloading client script and model..."
+mkdir -p "$INSTALL_DIR"
+
+# Download sensor_client.py
+echo "  → Downloading sensor_client.py..."
+curl -fSL "$REPO_RAW/raspberry_pi/sensor_client.py" -o "$INSTALL_DIR/sensor_client.py"
+
+# Download the Keras model
+echo "  → Downloading mobilenet_general_disease.keras (this may take a moment)..."
+curl -fSL "$REPO_RAW/model_training/mobilenet_general_disease.keras" -o "$INSTALL_DIR/mobilenet_general_disease.keras"
 
 # ── 5. Create Python virtual environment ─────────────────────────────────────
 echo ""
@@ -88,7 +91,7 @@ pip install \
 echo ""
 echo "[7/7] Creating config and systemd service..."
 
-ENV_FILE="$INSTALL_DIR/raspberry_pi/.env"
+ENV_FILE="$INSTALL_DIR/.env"
 if [ ! -f "$ENV_FILE" ]; then
     cat > "$ENV_FILE" << 'EOF'
 # ── Sensor Client Configuration ──
@@ -107,7 +110,7 @@ ENABLE_CAMERA=true
 SOIL_SENSOR_PIN=0
 
 # Camera
-MODEL_PATH=model.keras
+MODEL_PATH=mobilenet_general_disease.keras
 USE_LIBCAMERA=false
 EOF
     echo "  → Created $ENV_FILE — edit this to match your setup"
@@ -126,8 +129,8 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=$USER
-WorkingDirectory=$INSTALL_DIR/raspberry_pi
-EnvironmentFile=$INSTALL_DIR/raspberry_pi/.env
+WorkingDirectory=$INSTALL_DIR
+EnvironmentFile=$INSTALL_DIR/.env
 ExecStart=$VENV_DIR/bin/python sensor_client.py
 Restart=on-failure
 RestartSec=30
@@ -145,10 +148,9 @@ echo "  Setup complete!"
 echo "========================================="
 echo ""
 echo "Next steps:"
-echo "  1. Place your model.keras file in: $INSTALL_DIR/raspberry_pi/"
-echo "  2. Edit sensor config:            nano $ENV_FILE"
-echo "  3. Reboot to apply I2C/camera:    sudo reboot"
-echo "  4. After reboot, the service starts automatically."
+echo "  1. Edit sensor config:            nano $ENV_FILE"
+echo "  2. Reboot to apply I2C/camera:    sudo reboot"
+echo "  3. After reboot, the service starts automatically."
 echo ""
 echo "Useful commands:"
 echo "  Start now:    sudo systemctl start plant-monitor"
