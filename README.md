@@ -120,4 +120,105 @@ CREATE TABLE plant_readings (
 
 Run `flask --app app init-db` to create this automatically.
 
-## Deployment on the Cloud ##
+## Deployment
+
+The stack runs as two Docker containers managed by Docker Compose:
+- **web** — Flask/Gunicorn on port 8000 (internal)
+- **nginx** — serves the static frontend and reverse-proxies `/api/` to the backend, exposed on port 8080
+
+### Prerequisites
+
+- Docker & Docker Compose v2
+- A domain pointed at your server (the nginx config expects `hoosleaf.fit`)
+- Auth0 application, Snowflake account, and Gemini API key
+
+### 1. Configure environment variables
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Edit `backend/.env` and fill in all values:
+
+```ini
+# Flask
+SECRET_KEY=<long-random-string>
+FLASK_DEBUG=false
+
+# Snowflake
+SNOWFLAKE_ACCOUNT=<account-identifier>   # e.g. abc12345.us-east-1
+SNOWFLAKE_USER=<username>
+SNOWFLAKE_PASSWORD=<password>
+SNOWFLAKE_DATABASE=PLANT_MONITOR_DB
+SNOWFLAKE_SCHEMA=PUBLIC
+SNOWFLAKE_WAREHOUSE=COMPUTE_WH
+SNOWFLAKE_ROLE=SYSADMIN
+
+# Google Gemini
+GEMINI_API_KEY=<your-gemini-api-key>
+
+# Auth0
+AUTH0_DOMAIN=<your-tenant>.auth0.com
+AUTH0_CLIENT_ID=<client-id>
+AUTH0_CLIENT_SECRET=<client-secret>
+AUTH0_SECRET=<random-256-bit-hex>
+AUTH0_REDIRECT_URI=https://<your-domain>/callback
+AUTH0_AUDIENCE=https://<your-domain>/api
+```
+
+### 2. Initialise the database
+
+```bash
+cd backend
+pip install -r requirements.txt
+flask --app app init-db
+```
+
+### 3. Build and start the containers
+
+```bash
+# From the repo root
+docker compose up --build -d
+```
+
+- Frontend: `http://localhost:8080`
+- API: `http://localhost:8080/api/`
+
+### 4. Domain & HTTPS (production)
+
+The bundled [nginx.conf](backend/nginx.conf) listens on port 80 for `hoosleaf.fit`. To add HTTPS with Let's Encrypt:
+
+```bash
+# Install certbot on the host
+sudo apt install certbot python3-certbot-nginx
+
+# Obtain a certificate (nginx must be reachable on port 80)
+sudo certbot --nginx -d hoosleaf.fit -d www.hoosleaf.fit
+```
+
+Certbot will patch nginx with an HTTPS block and auto-renewal via systemd timer.
+
+If you are deploying to a different domain, update `server_name` in `backend/nginx.conf` and the `AUTH0_REDIRECT_URI` / `AUTH0_AUDIENCE` values in `.env` before rebuilding.
+
+### 5. Update the Raspberry Pi
+
+Point the sensor client at the deployed server:
+
+```bash
+export BACKEND_URL=https://hoosleaf.fit
+export PLANT_ID=plant-01
+export DEVICE_ID=rpi-kitchen-01
+export POLL_INTERVAL=60
+
+python raspberry_pi/sensor_client.py
+```
+
+### Useful commands
+
+```bash
+docker compose logs -f          # tail all logs
+docker compose logs -f web      # backend only
+docker compose restart web      # restart after config change
+docker compose down             # stop & remove containers
+docker compose down -v          # also wipe volumes
+```
