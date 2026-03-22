@@ -118,6 +118,7 @@ Respond ONLY with valid JSON matching this schema (no markdown fences):
 
 def generate_suggestions(user_message: str, bot_reply: str) -> list[str]:
     """Return 3 short follow-up questions based on the last exchange."""
+    import json, re
     model = _client()
     prompt = (
         f"The user asked: \"{user_message}\"\n"
@@ -127,14 +128,14 @@ def generate_suggestions(user_message: str, bot_reply: str) -> list[str]:
         "Return ONLY a JSON array of 3 strings, no markdown, no explanation."
     )
     try:
-        import json
         response = model.generate_content(prompt)
-        text = response.text.strip().strip("`").strip()
-        if text.lower().startswith("json"):
-            text = text[4:].strip()
-        suggestions = json.loads(text)
-        if isinstance(suggestions, list):
-            return [str(s) for s in suggestions[:3]]
+        text = response.text.strip()
+        # Extract JSON array from anywhere in the response
+        match = re.search(r'\[.*?\]', text, re.DOTALL)
+        if match:
+            suggestions = json.loads(match.group())
+            if isinstance(suggestions, list) and suggestions:
+                return [str(s) for s in suggestions[:3]]
     except Exception:
         pass
     return []
