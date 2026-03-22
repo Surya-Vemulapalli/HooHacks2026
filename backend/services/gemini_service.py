@@ -116,6 +116,31 @@ Respond ONLY with valid JSON matching this schema (no markdown fences):
         }
 
 
+def generate_suggestions(user_message: str, bot_reply: str) -> list[str]:
+    """Return 3 short follow-up questions based on the last exchange."""
+    import json, re
+    model = _client()
+    prompt = (
+        f"The user asked: \"{user_message}\"\n"
+        f"The assistant replied: \"{bot_reply[:400]}\"\n\n"
+        "Generate exactly 3 short follow-up questions a user might ask next about plant health, "
+        "diseases, or sustainability. Each must be under 8 words. "
+        "Return ONLY a JSON array of 3 strings, no markdown, no explanation."
+    )
+    try:
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        # Extract JSON array from anywhere in the response
+        match = re.search(r'\[.*?\]', text, re.DOTALL)
+        if match:
+            suggestions = json.loads(match.group())
+            if isinstance(suggestions, list) and suggestions:
+                return [str(s) for s in suggestions[:3]]
+    except Exception:
+        pass
+    return []
+
+
 def chat(message: str, history: list[dict], plant_context: dict | None = None) -> str:
     """
     Multi-turn chat with PlantBot.

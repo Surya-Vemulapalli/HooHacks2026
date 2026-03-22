@@ -47,10 +47,12 @@ def chat():
     except Exception as exc:
         return jsonify({"error": f"Gemini error: {exc}"}), 502
 
+    suggestions = gemini.generate_suggestions(message, reply)
+
     # Append this turn to history for the client to store
     updated_history = history + [
         {"role": "user",  "content": message},
         {"role": "model", "content": reply},
     ]
 
-    return jsonify({"reply": reply, "history": updated_history})
+    return jsonify({"reply": reply, "history": updated_history, "suggestions": suggestions})
