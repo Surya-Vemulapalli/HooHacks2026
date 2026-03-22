@@ -163,3 +163,12 @@ def chat(message: str, history: list[dict], plant_context: dict | None = None) -
     chat_session = model.start_chat(history=gemini_history)
     response = chat_session.send_message(user_message)
     return response.text.strip()
+
+
+def analyze_plant_health(sensor_data, weather_data=None):
+    prompt = f"Analyze this plant sensor data: {sensor_data}."
+    
+    if weather_data:
+        prompt += f" Consider the upcoming weather forecast: {weather_data}. Will the upcoming precipitation or temperature drops affect the plant?"
+        
+    # Send to Gemini...

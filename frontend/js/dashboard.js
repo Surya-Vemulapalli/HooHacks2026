@@ -19,7 +19,7 @@ async function loadDashboard() {
   showSkeletons();
 
   const [readingsRes, summaryRes] = await Promise.all([
-    fetch(`${API_BASE}/analytics/readings/${plantId}?limit=100`),
+    fetch(`/api/analytics/readings/${plantId}?limit=100`),
     fetch(`${API_BASE}/analytics/summary/${plantId}?hours=24`),
   ]);
 

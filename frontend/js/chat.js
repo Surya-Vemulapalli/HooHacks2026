@@ -213,7 +213,7 @@ async function sendMessage() {
       plant_context: buildPlantContext(),
     };
 
-    const res = await fetch(`${API_BASE}/chat`, {
+    const res = await fetch("/api/chat", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify(body),

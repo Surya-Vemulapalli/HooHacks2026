@@ -6,6 +6,7 @@ from routes.sensor import sensor_bp
 from routes.analytics import analytics_bp
 from routes.recommendations import recommendations_bp
 from routes.chat import chat_bp
+from routes.weather import weather_bp
 from services import snowflake_service as db
 
 
@@ -19,7 +20,8 @@ def create_app():
     app.register_blueprint(sensor_bp)
     app.register_blueprint(analytics_bp)
     app.register_blueprint(recommendations_bp)
-    app.register_blueprint(chat_bp)
+    app.register_blueprint(chat_bp, url_prefix='/api/chat')
+    app.register_blueprint(weather_bp, url_prefix='/api/weather')
 
     @app.route("/api/health")
     def health():
@@ -37,4 +39,4 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(host="0.0.0.0", port=5000, debug=app.config["DEBUG"])
+    app.run(host="0.0.0.0", port=6000, debug=app.config["DEBUG"])
