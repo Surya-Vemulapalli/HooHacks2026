@@ -6,4 +6,9 @@ google-generativeai>=0.7
 tensorflow==2.15.0
 scikit-learn==1.3.2
 numpy==1.26.4
+<<<<<<< HEAD
 flask-login>=0.6.3
+=======
+pillow>=9.0.0
+gunicorn==21.2.0
+>>>>>>> 07c990e80e6dc149b951fb069546f26085985a32

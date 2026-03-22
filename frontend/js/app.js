@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "/api";
 
 let tempChart, lightChart, deformityChart;
 
@@ -250,11 +250,13 @@ const chatMessages    = document.getElementById("chat-messages");
 const chatInput       = document.getElementById("chat-input");
 const chatSendBtn     = document.getElementById("chat-send");
 const chatClearBtn    = document.getElementById("chat-clear");
+const chatMinimizeBtn = document.getElementById("chat-minimize");
 const chatBadge       = document.getElementById("chat-badge");
 const chatSuggestions = document.getElementById("chat-suggestions");
 
-let chatHistory = [];   // [{role, content}]
-let chatOpen    = false;
+let chatHistory  = [];   // [{role, content}]
+let chatOpen     = false;
+let chatMinimized = false;
 
 // Toggle open/close
 chatToggleBtn.addEventListener("click", () => {
@@ -263,9 +265,72 @@ chatToggleBtn.addEventListener("click", () => {
   chatPanel.hidden = !chatOpen;
   if (chatOpen) {
     chatBadge.hidden = true;
+    // Restore if was minimized
+    chatPanel.classList.remove("minimized");
+    chatWidget.classList.remove("minimized");
+    chatMinimized = false;
     chatInput.focus();
     scrollToBottom();
   }
+});
+
+// Drag to reposition
+(function () {
+  const header = chatWidget.querySelector(".chat-header");
+  let dragging = false, startX, startY, startLeft, startTop;
+
+  header.addEventListener("mousedown", (e) => {
+    // Don't drag when clicking buttons inside the header
+    if (e.target.closest("button")) return;
+
+    dragging = true;
+    const rect = chatWidget.getBoundingClientRect();
+
+    // Switch from bottom/right to top/left so we can move freely
+    chatWidget.style.left   = rect.left + "px";
+    chatWidget.style.top    = rect.top  + "px";
+    chatWidget.style.right  = "auto";
+    chatWidget.style.bottom = "auto";
+
+    startX    = e.clientX;
+    startY    = e.clientY;
+    startLeft = rect.left;
+    startTop  = rect.top;
+
+    e.preventDefault();
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    const newLeft = Math.max(0, Math.min(window.innerWidth  - chatWidget.offsetWidth,  startLeft + dx));
+    const newTop  = Math.max(0, Math.min(window.innerHeight - chatWidget.offsetHeight, startTop  + dy));
+
+    chatWidget.style.left = newLeft + "px";
+    chatWidget.style.top  = newTop  + "px";
+  });
+
+  document.addEventListener("mouseup", () => { dragging = false; });
+})();
+
+// Minimize / maximize
+function setMinimized(state) {
+  chatMinimized = state;
+  chatPanel.classList.toggle("minimized", chatMinimized);
+  chatWidget.classList.toggle("minimized", chatMinimized);
+  if (!chatMinimized) {
+    chatInput.focus();
+    scrollToBottom();
+  }
+}
+
+chatMinimizeBtn.addEventListener("click", () => setMinimized(!chatMinimized));
+
+// Clicking the header while minimized restores the panel
+chatWidget.querySelector(".chat-header").addEventListener("click", (e) => {
+  if (chatMinimized && !e.target.closest("button")) setMinimized(false);
 });
 
 // Clear conversation
@@ -308,12 +373,26 @@ function scrollToBottom() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+function formatBotText(text) {
+  // Escape HTML, then convert **bold** to <b>bold</b>
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    .replace(/\*(.+?)\*/g, "$1");  // strip single asterisks (italics)
+}
+
 function appendMessage(role, text) {
   const div = document.createElement("div");
   div.className = `chat-msg ${role}`;
   const bubble = document.createElement("span");
   bubble.className = "msg-bubble";
-  bubble.textContent = text;
+  if (role === "bot") {
+    bubble.innerHTML = formatBotText(text);
+  } else {
+    bubble.textContent = text;
+  }
   div.appendChild(bubble);
   chatMessages.appendChild(div);
   scrollToBottom();

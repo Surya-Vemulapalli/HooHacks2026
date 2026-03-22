@@ -3,8 +3,9 @@ import glob
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.applications import MobileNetV2
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout, RandomFlip, RandomRotation, RandomZoom, RandomBrightness
 from tensorflow.keras.models import Model
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 import ssl
 
@@ -53,8 +54,7 @@ def process_path(file_path, label):
     img = tf.io.read_file(file_path)
     img = tf.image.decode_jpeg(img, channels=3)
     img = tf.image.resize(img, [224, 224])
-    # MobileNetV2 expects inputs in [-1, 1], but we can use their preprocess_input or manual scaling
-    img = tf.keras.applications.mobilenet_v2.preprocess_input(img)
+    # Remove preprocess_input from here! Leave it as 0-255.
     return img, label
 
 def create_dataset(image_paths, labels, batch_size=32):
@@ -87,26 +87,60 @@ def main():
     train_ds = create_dataset(train_paths, train_labels)
     val_ds = create_dataset(val_paths, val_labels)
 
-    # Build model using MobileNetV2
-    print("Building MobileNetV2 model...")
-    base_model = MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
-    base_model.trainable = False  # Freeze base model
+    # Build data augmentation pipeline
+    data_augmentation = tf.keras.Sequential([
+        RandomFlip("horizontal_and_vertical"),
+        RandomRotation(0.2),
+        RandomZoom(0.2),
+        RandomBrightness(0.2),
+    ], name="data_augmentation")
 
-    x = base_model.output
+    # Build model using MobileNetV2
+    print("Building MobileNetV2 model with fine-tuning...")
+    base_model = MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
+    
+    # Freeze the base model first
+    base_model.trainable = False
+
+    # Create the model architecture
+    inputs = tf.keras.Input(shape=(224, 224, 3))
+    x = data_augmentation(inputs) # Apply augmentation during training on 0-255 images
+    
+    # Scale to [-1, 1] AFTER augmentation, right before the base model
+    x = tf.keras.applications.mobilenet_v2.preprocess_input(x) 
+    
+    x = base_model(x, training=False)
     x = GlobalAveragePooling2D()(x)
-    x = Dropout(0.2)(x)
+    x = Dropout(0.5)(x) # Increased dropout for better regularization
     predictions = Dense(num_classes, activation='softmax')(x)
 
-    model = Model(inputs=base_model.input, outputs=predictions)
+    model = Model(inputs=inputs, outputs=predictions)
 
-    model.compile(optimizer='adam', 
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), 
                   loss='sparse_categorical_crossentropy', 
                   metrics=['accuracy'])
 
-    # Train model
-    print("Training model...")
-    epochs = 5
-    model.fit(train_ds, validation_data=val_ds, epochs=epochs)
+    # Callbacks for better training
+    early_stop = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=1e-6)
+
+    # Phase 1: Train just the top classification head
+    print("Phase 1: Training top layers...")
+    model.fit(train_ds, validation_data=val_ds, epochs=5, callbacks=[early_stop])
+
+    # Phase 2: Fine-tuning
+    print("Phase 2: Fine-tuning the top convolutional blocks of MobileNetV2...")
+    base_model.trainable = True
+    # Freeze the bottom 100 layers, train the rest
+    for layer in base_model.layers[:100]:
+        layer.trainable = False
+
+    # Recompile with a much lower learning rate for fine-tuning
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5), 
+                  loss='sparse_categorical_crossentropy', 
+                  metrics=['accuracy'])
+
+    model.fit(train_ds, validation_data=val_ds, epochs=10, callbacks=[early_stop, reduce_lr])
 
     # Save model using the newer .keras format
     model_save_path = os.path.join(os.path.dirname(__file__), "mobilenet_general_disease.keras")
