@@ -63,7 +63,8 @@ def analyze_plant_trends(plant_id: str, summary: dict, recent_readings: list) ->
 
     recent_snippet = "\n".join(
         f"  - {r['recorded_at']}: temp={r['temperature']}°C, "
-        f"light={r['light_level']} lux, deformity={r['deformity_score']:.2f}"
+        f"light={r['light_level']} lux, soil_moisture={r.get('soil_moisture', 'N/A')}, "
+        f"deformity={r['deformity_score']:.2f}"
         f"{' (' + r['deformity_type'] + ')' if r.get('deformity_type') else ''}"
         for r in recent_readings[:10]
     )
@@ -76,6 +77,7 @@ data for plant "{plant_id}" and provide actionable recommendations.
 Total readings : {summary.get('reading_count')}
 Temperature    : avg {summary.get('avg_temp') if summary.get('avg_temp') is not None else 'N/A'}, range [{summary.get('min_temp') if summary.get('min_temp') is not None else 'N/A'} – {summary.get('max_temp') if summary.get('max_temp') is not None else 'N/A'}]°C
 Light level    : avg {summary.get('avg_light') if summary.get('avg_light') is not None else 'N/A'} lux, range [{summary.get('min_light') if summary.get('min_light') is not None else 'N/A'} – {summary.get('max_light') if summary.get('max_light') is not None else 'N/A'}] lux
+Soil moisture  : avg {summary.get('avg_soil_moisture') if summary.get('avg_soil_moisture') is not None else 'N/A'}, range [{summary.get('min_soil_moisture') if summary.get('min_soil_moisture') is not None else 'N/A'} – {summary.get('max_soil_moisture') if summary.get('max_soil_moisture') is not None else 'N/A'}] (raw ADC 0-1024, higher = wetter)
 Deformity score: avg {summary.get('avg_deformity', 0)}, max {summary.get('max_deformity', 0)} (0=healthy, 1=severe)
 Deformity types: {summary.get('deformity_types') or 'none detected'}
 
@@ -173,6 +175,8 @@ def chat(message: str, history: list[dict], plant_context: dict | None = None) -
             ctx_lines.append(f"Current avg temperature: {summary['avg_temp']:.1f}°C")
         if summary.get("avg_light") is not None:
             ctx_lines.append(f"Current avg light: {summary['avg_light']:.0f} lux")
+        if summary.get("avg_soil_moisture") is not None:
+            ctx_lines.append(f"Current avg soil moisture: {summary['avg_soil_moisture']:.0f} / 1000 (higher = wetter)")
         if summary.get("avg_deformity") is not None:
             ctx_lines.append(f"Deformity score: {summary['avg_deformity']:.2f} / 1.0")
         if summary.get("deformity_types"):

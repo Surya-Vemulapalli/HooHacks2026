@@ -1,4 +1,4 @@
-let tempChart, lightChart, deformityChart;
+let tempChart, lightChart, soilChart, deformityChart;
 
 function mkChart(canvasId, label, color, data, labels) {
   const ctx = $(canvasId).getContext("2d");
@@ -52,7 +52,7 @@ function mkChart(canvasId, label, color, data, labels) {
 
 function renderCharts(readings) {
   if (!readings || readings.length === 0) {
-    ["temp-chart","light-chart","deformity-chart"].forEach(id => {
+    ["temp-chart","light-chart","soil-chart","deformity-chart"].forEach(id => {
       const ctx = $(id).getContext("2d");
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     });
@@ -66,13 +66,16 @@ function renderCharts(readings) {
 
   const temps       = readings.map(r => r.temperature);
   const lights      = readings.map(r => r.light_level);
+  const soils       = readings.map(r => r.soil_moisture);
   const deformities = readings.map(r => r.deformity_score);
 
   if (tempChart)      tempChart.destroy();
   if (lightChart)     lightChart.destroy();
+  if (soilChart)      soilChart.destroy();
   if (deformityChart) deformityChart.destroy();
 
-  tempChart      = mkChart("temp-chart",      "Temperature (°C)",  "#2d6a4f", temps,       labels);
-  lightChart     = mkChart("light-chart",     "Light Level (lux)", "#f4a261", lights,      labels);
-  deformityChart = mkChart("deformity-chart", "Deformity Score",   "#e63946", deformities, labels);
+  tempChart      = mkChart("temp-chart",      "Temperature (°C)",    "#2d6a4f", temps,       labels);
+  lightChart     = mkChart("light-chart",     "Light Level (lux)",   "#f4a261", lights,      labels);
+  soilChart      = mkChart("soil-chart",      "Soil Moisture (ADC)", "#1d8a99", soils,       labels);
+  deformityChart = mkChart("deformity-chart", "Deformity Score",     "#e63946", deformities, labels);
 }

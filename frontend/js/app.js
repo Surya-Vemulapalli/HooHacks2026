@@ -31,7 +31,7 @@ function countUp(el, target, dec = 1, duration = 600) {
 
 // Show skeleton shimmer on all stat value elements
 function showSkeletons() {
-  ["stat-temp","stat-light","stat-def","stat-count"].forEach(id => {
+  ["stat-temp","stat-light","stat-soil","stat-def","stat-count"].forEach(id => {
     const el = $(id);
     el.textContent = "\u00a0\u00a0\u00a0\u00a0"; // non-breaking spaces for width
     el.classList.add("skeleton");
@@ -39,7 +39,7 @@ function showSkeletons() {
 }
 
 function clearSkeletons() {
-  ["stat-temp","stat-light","stat-def","stat-count"].forEach(id => {
+  ["stat-temp","stat-light","stat-soil","stat-def","stat-count"].forEach(id => {
     $(id).classList.remove("skeleton");
   });
 }
@@ -423,12 +423,14 @@ function buildPlantContext() {
   // Pull values from stat cards if populated
   const avgTemp  = parseFloat($("stat-temp")?.textContent);
   const avgLight = parseFloat($("stat-light")?.textContent);
+  const avgSoil  = parseFloat($("stat-soil")?.textContent);
   const avgDef   = parseFloat($("stat-def")?.textContent);
 
   const summary = {};
-  if (!isNaN(avgTemp))  summary.avg_temp      = avgTemp;
-  if (!isNaN(avgLight)) summary.avg_light     = avgLight;
-  if (!isNaN(avgDef))   summary.avg_deformity = avgDef;
+  if (!isNaN(avgTemp))  summary.avg_temp           = avgTemp;
+  if (!isNaN(avgLight)) summary.avg_light          = avgLight;
+  if (!isNaN(avgSoil))  summary.avg_soil_moisture   = avgSoil;
+  if (!isNaN(avgDef))   summary.avg_deformity      = avgDef;
 
   return { plant_id: plantId, summary };
 }
