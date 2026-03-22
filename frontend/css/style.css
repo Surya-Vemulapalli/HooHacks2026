@@ -380,7 +380,7 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
 
 .chat-widget {
   position: fixed;
-  bottom: 1.5rem;
+  top: 1.5rem;
   right: 1.5rem;
   z-index: 1000;
   display: flex;
@@ -447,7 +447,7 @@ header span.subtitle { font-size: .85rem; opacity: .65; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transform-origin: bottom right;
+  transform-origin: top right;
   animation: panel-open .22s cubic-bezier(.34,1.56,.64,1);
 }
 @keyframes panel-open {
