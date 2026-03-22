@@ -3,7 +3,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 _backend_dir = Path(__file__).parent
-load_dotenv(_backend_dir / "snowflake.env")
 load_dotenv(_backend_dir / ".env", override=False)
 
 class Config:
